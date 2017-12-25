@@ -7,6 +7,8 @@
     <version>1.0-SNAPSHOT</version>
     <modules>
         <module>spring-oauth2-server-minimum</module>
+        <module>spring-oauth2-server-mysql</module>
+        <module>spring-oauth2-custom-server</module>
     </modules>
     <name>spring-oauth2-seed</name>
     <properties>

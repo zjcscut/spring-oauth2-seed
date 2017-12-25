@@ -1,0 +1,11 @@
+# 这里一定要配置这个filter顺序大于0，否则会导致filter加入过滤器链失败
+# 原因是使用了自定义的WebSecurityConfigurerAdapter实现
+security:
+  oauth2:
+    resource:
+      filter-order: 3
+spring:
+  application:
+    name: oauth2-custom-server
+server:
+  port: 8083
