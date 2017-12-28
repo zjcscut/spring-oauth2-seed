@@ -1,5 +1,6 @@
 package org.throwable.configuration;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.oauth2.config.annotation.configurers.ClientDetailsServiceConfigurer;
@@ -8,8 +9,11 @@ import org.springframework.security.oauth2.config.annotation.web.configuration.E
 import org.springframework.security.oauth2.config.annotation.web.configurers.AuthorizationServerEndpointsConfigurer;
 import org.springframework.security.oauth2.config.annotation.web.configurers.AuthorizationServerSecurityConfigurer;
 import org.springframework.security.oauth2.provider.code.AuthorizationCodeServices;
+import org.springframework.security.oauth2.provider.endpoint.AuthorizationEndpoint;
 import org.throwable.support.CustomMemoryAuthorizationCodeServices;
 import org.throwable.support.CustomTokenEnhancer;
+
+import javax.annotation.PostConstruct;
 
 /**
  * @author throwable
@@ -20,6 +24,23 @@ import org.throwable.support.CustomTokenEnhancer;
 @Configuration
 @EnableAuthorizationServer
 public class OAuthAuthorizationServerConfiguration extends AuthorizationServerConfigurerAdapter {
+
+    @Autowired
+    private AuthorizationEndpoint authorizationEndpoint;
+
+    private static final String CUSTOM_APPROVAL_PAGE = "forward:/oauth/custom-approval-page";
+    private static final String CUSTOM_ERROR_PAGE = "forward:/oauth/custom-error-page";
+
+    private static final Long CODE_EXPIRATION_SECONDS = 5L;
+
+    /**
+     * 这里的目的是修改授权页和授权错误跳转的页面
+     */
+//    @PostConstruct
+//    public void init() {
+//        this.authorizationEndpoint.setUserApprovalPage(CUSTOM_APPROVAL_PAGE);
+//        this.authorizationEndpoint.setErrorPage(CUSTOM_ERROR_PAGE);
+//    }
 
     @Override
     public void configure(ClientDetailsServiceConfigurer clients) throws Exception {
@@ -65,11 +86,11 @@ public class OAuthAuthorizationServerConfiguration extends AuthorizationServerCo
      */
     @Bean
     public AuthorizationCodeServices authorizationCodeServices() {
-        return new CustomMemoryAuthorizationCodeServices();
+        return new CustomMemoryAuthorizationCodeServices(CODE_EXPIRATION_SECONDS);
     }
 
     @Bean
-    public CustomTokenEnhancer tokenEnhancer(){
+    public CustomTokenEnhancer tokenEnhancer() {
         return new CustomTokenEnhancer();
     }
 }

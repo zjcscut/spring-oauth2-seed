@@ -7,5 +7,10 @@ security:
 spring:
   application:
     name: oauth2-custom-server
+  freemarker:
+    charset: UTF-8
+    template-loader-path: classpath:/templates/
+    cache: false
+    request-context-attribute: request
 server:
   port: 8083

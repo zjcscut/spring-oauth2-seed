@@ -1,5 +1,6 @@
 package org.throwable.support;
 
+import org.springframework.security.oauth2.common.exceptions.InvalidGrantException;
 import org.springframework.security.oauth2.common.util.RandomValueStringGenerator;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.security.oauth2.provider.code.RandomValueAuthorizationCodeServices;
@@ -16,9 +17,12 @@ import java.util.concurrent.ConcurrentMap;
 public class CustomMemoryAuthorizationCodeServices extends RandomValueAuthorizationCodeServices {
 
     private RandomValueStringGenerator generator;
+    private final Long expireSeconds;
     private final ConcurrentMap<String, OAuth2Authentication> authorizationCodeStore = new ConcurrentHashMap<>();
+    private final ConcurrentMap<String, Long> expiration = new ConcurrentHashMap<>();
 
-    public CustomMemoryAuthorizationCodeServices() {
+    public CustomMemoryAuthorizationCodeServices(Long expireSeconds) {
+        this.expireSeconds = expireSeconds;
         this.generator = new RandomValueStringGenerator(16);
     }
 
@@ -36,6 +40,24 @@ public class CustomMemoryAuthorizationCodeServices extends RandomValueAuthorizat
     public String createAuthorizationCode(OAuth2Authentication authentication) {
         String code = this.generator.generate();
         store(code, authentication);
+        expiration.put(code, getCurrentTimestamp() + expireSeconds * 1000);
         return code;
+    }
+
+    @Override
+    public OAuth2Authentication consumeAuthorizationCode(String code) throws InvalidGrantException {
+        Long expired = expiration.get(code);
+        if (null != expired && isCodeExpired(expired)) {
+            throw new InvalidGrantException("Invalid authorization code,authorization code is expired,value: " + code);
+        }
+        return super.consumeAuthorizationCode(code);
+    }
+
+    private boolean isCodeExpired(Long expired) {
+        return getCurrentTimestamp() > expired;
+    }
+
+    private long getCurrentTimestamp() {
+        return System.currentTimeMillis();
     }
 }
